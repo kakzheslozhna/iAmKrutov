@@ -106,10 +106,16 @@ body{
 /* Enhanced Lens */
 .lens-viewport {
   position: fixed; inset: 0; z-index: 10; pointer-events: none;
+  perspective: 1500px;
 }
 
 .lens {
-  position: absolute; width: var(--lens-size); height: var(--lens-size);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: var(--lens-size); height: var(--lens-size);
   border-radius: 50%; 
   border: 2px solid var(--lens-border);
   box-shadow: 
@@ -117,7 +123,7 @@ body{
     inset 0 0 30px var(--lens-glow),
     0 0 100px 5px rgba(3, 225, 255, 0.1);
   clip-path: circle(50% at 50% 50%);
-  will-change: transform, left, top; 
+  will-change: transform; 
   background: 
     radial-gradient(circle at 30% 30%, rgba(0, 255, 163, 0.05), transparent 50%),
     radial-gradient(circle at 70% 70%, rgba(3, 225, 255, 0.05), transparent 50%),
@@ -151,13 +157,15 @@ body{
   padding: 5%;
   position: relative;
   pointer-events: auto;
+  will-change: transform;
 }
 .lens-content::-webkit-scrollbar { display: none; }
 
 .content-wrapper {
   max-width: 80%; margin: 0 auto;
   padding-top: calc(var(--lens-size) * 0.2);
-  padding-bottom: calc(var(--lens-size) * 0.2);
+  /* // <<< ИЗМЕНЕНИЕ 1: Уменьшаем нижний отступ, чтобы не было лишнего скролла */
+  padding-bottom: calc(var(--lens-size) * 0.1);
 }
 
 /* Enhanced Sections */
@@ -266,7 +274,6 @@ body{
 /* Enhanced Project Cards */
 .project-grid{
   display:grid; 
-  /* // <<< ИЗМЕНЕНИЕ: Проекты теперь в одну колонку (списком) */
   grid-template-columns: 1fr;
   gap:1.5rem; 
   width: 100%;
@@ -537,9 +544,19 @@ body{
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  body { cursor: auto; overflow: auto; }
-  .lens-viewport, #cursor, #scroll-hint, #particles-container, #geometric-bg { display: none; }
-  .mobile-content-container { display: block; }
+  /* // <<< ИЗМЕНЕНИЕ 2: Включаем скролл для мобильной версии */
+  html, body { 
+    overflow: auto; 
+  }
+  body { 
+    cursor: auto; 
+  }
+  .lens-viewport, #cursor, #scroll-hint, #particles-container, #geometric-bg { 
+    display: none; 
+  }
+  .mobile-content-container { 
+    display: block; 
+  }
 }
 
 @media (min-width: 769px) {
@@ -639,7 +656,7 @@ body{
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
   background: rgba(255,255,255,0.05);
-  font-size: 1.2rem; /* // <<< ИЗМЕНЕНИЕ: Сделал иконку чуть крупнее */
+  font-size: 1.2rem;
 }
 
 .social-link:hover {
@@ -666,7 +683,7 @@ body{
 <div id="starfield"></div>
 <div id="particles-container"></div>
 <div id="geometric-bg"></div>
-<div id="scroll-hint">Navigate with lens • Scroll to explore</div>
+<div id="scroll-hint">Scroll inside the lens to explore</div>
 
 <!-- DESKTOP -->
 <div class="lens-viewport">
@@ -677,7 +694,6 @@ body{
         <div class="section hero-wrap" id="hero">
           <div class="brand-title" id="brandTitle" data-text="KRUTOV EGOR"></div>
           <div class="brand-sub">[ NAVIGATING THE DIGITAL COSMOS ]</div>
-          <!-- // <<< ИЗМЕНЕНИЕ: Оставил только одну ссылку на телеграм -->
           <div class="social-links">
             <a href="#" class="social-link" title="Telegram">✈</a>
           </div>
@@ -749,7 +765,6 @@ body{
       <div class="section hero-wrap">
         <div class="brand-title" id="brandTitleMobile" data-text="KRUTOV EGOR"></div>
         <div class="brand-sub">[ NAVIGATING THE DIGITAL COSMOS ]</div>
-         <!-- // <<< ИЗМЕНЕНИЕ: Оставил только одну ссылку на телеграм -->
         <div class="social-links">
           <a href="#" class="social-link" title="Telegram">✈</a>
         </div>
@@ -821,20 +836,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const titleText = "KRUTOV EGOR";
   let cursorHasMoved = false;
   let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-  let lensPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
   // Initialize elements
   const lens = document.getElementById('lens');
+  const lensContent = document.getElementById('lens-content');
   const cursor = document.getElementById('cursor');
   const starfield = document.getElementById('starfield');
   const scrollHint = document.getElementById('scroll-hint');
   const loadingOverlay = document.getElementById('loadingOverlay');
 
-  gsap.set(lens, { 
-    xPercent: -50, yPercent: -50, 
-    left: lensPos.x, top: lensPos.y, 
-    scale: 0, opacity: 0 
-  });
+  gsap.set(lens, { scale: 0, opacity: 0 });
   gsap.set(cursor, { opacity: 0 });
 
   // Hide loading screen
@@ -979,20 +990,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startAnimationLoop() {
+    const TILT_AMOUNT = 15;
+    const PARALLAX_AMOUNT = 30;
+
     function animate() {
-      lensPos.x += (mouse.x - lensPos.x) * 0.1;
-      lensPos.y += (mouse.y - lensPos.y) * 0.1;
-      
-      if (lens && cursorHasMoved) {
-        const deltaX = mouse.x - lensPos.x;
-        const deltaY = mouse.y - lensPos.y;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const rot = deltaX * 0.05;
-        const scaleFactor = 1 + distance * 0.0004;
-        
-        gsap.set(lens, {
-          left: lensPos.x, top: lensPos.y,
-          rotation: rot, scale: scaleFactor,
+      if (cursorHasMoved) {
+        const xPercent = (mouse.x / window.innerWidth - 0.5) * 2;
+        const yPercent = (mouse.y / window.innerHeight - 0.5) * 2;
+
+        gsap.to(lens, {
+          rotationY: xPercent * TILT_AMOUNT,
+          rotationX: -yPercent * TILT_AMOUNT,
+          duration: 0.8,
+          ease: 'power2.out'
+        });
+
+        gsap.to(lensContent, {
+          x: -xPercent * PARALLAX_AMOUNT,
+          y: -yPercent * PARALLAX_AMOUNT,
+          duration: 1.2,
+          ease: 'power3.out'
         });
       }
       
@@ -1002,8 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (starfield) {
         const xPercent = (mouse.x / window.innerWidth - 0.5) * 2;
-        const yPercent = (mouse.y / window.innerHeight - 0.5) * 2;
-        gsap.set(starfield, { x: -xPercent * 20, y: -yPercent * 20 });
+        gsap.set(starfield, { x: -xPercent * 20 });
       }
       
       requestAnimationFrame(animate);
