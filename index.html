@@ -164,7 +164,6 @@ body{
 .content-wrapper {
   max-width: 80%; margin: 0 auto;
   padding-top: calc(var(--lens-size) * 0.2);
-  /* // <<< ИЗМЕНЕНИЕ 1: Уменьшаем нижний отступ, чтобы не было лишнего скролла */
   padding-bottom: calc(var(--lens-size) * 0.1);
 }
 
@@ -544,9 +543,10 @@ body{
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  /* // <<< ИЗМЕНЕНИЕ 2: Включаем скролл для мобильной версии */
-  html, body { 
-    overflow: auto; 
+  /* <<< ИЗМЕНЕНИЕ: Включаем скролл И позволяем странице расти в высоту */
+  html, body {
+    overflow: auto;
+    height: auto; /* <-- КЛЮЧЕВОЙ ФИКС */
   }
   body { 
     cursor: auto; 
