@@ -45,6 +45,11 @@ body{
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing:antialiased;
   position: relative;
+  /* <<< ДОБАВЛЕНО: Стили для отключения выделения текста */
+  user-select: none; /* Стандартный синтаксис */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
 }
 
 body, body * {
@@ -740,7 +745,8 @@ body, body * {
 }
 </style>
 </head>
-<body>
+<!-- <<< ДОБАВЛЕНО: Отключаем контекстное меню (правый клик) -->
+<body oncontextmenu="return false;">
 
 <!-- <<< ДОБАВЛЕНО: Переключатель языка -->
 <div class="lang-switcher" id="langSwitcher">
@@ -755,7 +761,7 @@ body, body * {
 <!-- Status Indicator -->
 <div class="status-indicator">
   <div class="status-dot"></div>
-  <span>SYSTEM ONLINE</span>
+  <span>CONNECTED</span>
 </div>
 
 <div id="starfield"></div>
@@ -913,6 +919,26 @@ body, body * {
 <div id="cursor"></div>
 
 <script>
+// <<< ДОБАВЛЕНО: Скрипт для блокировки клавиш
+document.addEventListener('keydown', function (e) {
+    // Блокируем F12
+    if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+    }
+    // Блокируем Ctrl+Shift+I
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+    }
+    // Блокируем Ctrl+Shift+J
+    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+        e.preventDefault();
+    }
+    // Блокируем Ctrl+U
+    if (e.ctrlKey && e.key === 'U') {
+        e.preventDefault();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   gsap.registerPlugin(ScrollTrigger);
 
