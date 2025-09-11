@@ -4,12 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Krutov Egor — The Cosmic Lens</title>
-<link rel="icon" type="image/png" href="favicon.png">
+
 <!-- GSAP -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
 <!-- Fonts -->
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Roboto+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -40,9 +44,38 @@ body{
   color:var(--text);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing:antialiased;
-  cursor: none;
   position: relative;
 }
+
+body, body * {
+  cursor: none;
+}
+
+/* <<< ДОБАВЛЕНО: Стили для переключателя языка */
+.lang-switcher {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  color: var(--accent-a);
+  text-shadow: 0 0 5px var(--accent-a);
+  transition: all 0.3s ease;
+}
+.lang-switcher:hover {
+  border-color: var(--accent-a);
+  box-shadow: 0 0 15px rgba(0, 255, 163, 0.3);
+}
+.lang-switcher span {
+  display: inline-block; /* Для анимации */
+}
+
 
 /* Enhanced Starfield with Multiple Layers */
 #starfield {
@@ -54,6 +87,7 @@ body{
     radial-gradient(ellipse 45% 25% at 90% 70%, rgba(139, 92, 246, 0.06), transparent 70%);
   filter: blur(1px);
   will-change: transform;
+  display: none; /* Hide CSS starfield since we have Three.js */
 }
 
 /* Animated Particles */
@@ -131,7 +165,7 @@ body{
   backdrop-filter: blur(12px) saturate(150%) brightness(110%);
   -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(110%);
   overflow: hidden;
-  pointer-events: none;
+  pointer-events: all;
 }
 
 .lens::before {
@@ -208,58 +242,50 @@ body{
   text-shadow: 0 0 5px rgba(255,255,255,0.1);
 }
 
-/* Glitch Effect for Brand Title */
-.brand-title {
-  display: flex; flex-wrap: wrap; justify-content: center;
-  gap: 0.1em 0.2em; line-height: 1.1; perspective: 1000px;
-  cursor: pointer;
-  position: relative;
+.glitch-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: clamp(200px, 35vh, 300px);
 }
 
-.brand-title::before,
-.brand-title::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  font-size: clamp(3rem, 10vw, 6rem);
-  font-weight: 900;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.brand-title::before {
-  color: var(--accent-a);
-  animation: glitch-1 2s infinite;
-  z-index: -1;
-}
-
-.brand-title::after {
-  color: var(--accent-c);
-  animation: glitch-2 2s infinite;
-  z-index: -2;
-}
-
-.brand-letter {
-  display: inline-block; font-weight: 900;
-  font-size: clamp(3rem, 10vw, 6rem); 
-  color: var(--text);
-  text-shadow: 
-    0 0 20px rgba(255,255,255,0.3),
-    0 0 40px rgba(0, 255, 163, 0.2),
-    0 0 60px rgba(3, 225, 255, 0.2);
-  will-change: transform;
-  transition: all 0.3s ease;
+.glitch {
   position: relative;
   font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: clamp(3rem, 10vw, 6rem);
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text); 
+  opacity: 0.8;
+  text-shadow: 0 0 2px rgba(255,255,255,0.2);
+  animation: glitch-bars 8s steps(1) infinite;
 }
 
-.brand-letter:hover {
-  transform: scale(1.1) rotateY(15deg);
-  text-shadow: 
-    0 0 30px rgba(255,255,255,0.5),
-    0 0 50px var(--accent-a),
-    0 0 80px var(--accent-b);
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: white;
+  clip-path: inset(50% 0 50% 0);
 }
+
+.glitch::before {
+  animation: glitch-effect-1 8s steps(2, end) infinite;
+  text-shadow: -2px 0 var(--accent-c), 2px 0 var(--accent-b);
+}
+
+.glitch::after {
+  animation: glitch-effect-2 8s steps(2, end) infinite;
+  text-shadow: 2px 0 var(--accent-c), -2px 0 var(--accent-b);
+}
+
 
 .brand-sub{
   font-size: 1.1rem; 
@@ -291,7 +317,6 @@ body{
     inset 0 1px 0 rgba(255,255,255,0.1);
   position: relative;
   overflow: hidden;
-  cursor: pointer;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   backdrop-filter: blur(10px);
 }
@@ -373,7 +398,6 @@ body{
   color: #000;
   font-weight: 700;
   font-size: 1rem;
-  cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -512,18 +536,46 @@ body{
   to { transform: rotate(360deg); }
 }
 
-@keyframes glitch-1 {
-  0%, 90%, 100% { opacity: 0; }
-  5% { opacity: 0.7; transform: translate(-2px, 1px); }
-  10% { opacity: 0.8; transform: translate(2px, -1px); }
-  15% { opacity: 0; }
+@keyframes glitch-bars {
+  0% { transform: skewX(0deg); }
+  5% { transform: skewX(15deg); }
+  5.1% { transform: skewX(-10deg); }
+  10% { transform: skewX(0deg); }
+  45% { transform: skewX(0deg); }
+  45.1% { transform: skewX(-20deg); }
+  45.2% { transform: skewX(5deg); }
+  50% { transform: skewX(0deg); }
+  100% { transform: skewX(0deg); }
 }
 
-@keyframes glitch-2 {
-  0%, 90%, 100% { opacity: 0; }
-  5% { opacity: 0.6; transform: translate(2px, 1px); }
-  10% { opacity: 0.7; transform: translate(-2px, -1px); }
-  15% { opacity: 0; }
+@keyframes glitch-effect-1 {
+  0% { clip-path: inset(50% 0 50% 0); transform: translateX(-20px); }
+  5% { clip-path: inset(10% 0 85% 0); }
+  10% { clip-path: inset(90% 0 2% 0); }
+  15% { clip-path: inset(50% 0 50% 0); transform: translateX(20px); }
+  20% { clip-path: inset(20% 0 75% 0); }
+  25% { clip-path: inset(70% 0 15% 0); }
+  30% { clip-path: inset(50% 0 50% 0); transform: translateX(-20px); }
+  35% { clip-path: inset(5% 0 92% 0); }
+  40% { clip-path: inset(80% 0 5% 0); }
+  45% { clip-path: inset(40% 0 45% 0); }
+  50% { clip-path: inset(50% 0 50% 0); transform: translateX(20px); }
+  100% { clip-path: inset(50% 0 50% 0); }
+}
+
+@keyframes glitch-effect-2 {
+  0% { clip-path: inset(50% 0 50% 0); transform: translateX(20px); }
+  4% { clip-path: inset(80% 0 3% 0); }
+  8% { clip-path: inset(5% 0 88% 0); }
+  12% { clip-path: inset(50% 0 50% 0); transform: translateX(-20px); }
+  16% { clip-path: inset(95% 0 2% 0); }
+  20% { clip-path: inset(25% 0 70% 0); }
+  24% { clip-path: inset(50% 0 50% 0); transform: translateX(20px); }
+  28% { clip-path: inset(15% 0 80% 0); }
+  32% { clip-path: inset(75% 0 10% 0); }
+  36% { clip-path: inset(90% 0 3% 0); }
+  40% { clip-path: inset(50% 0 50% 0); transform: translateX(-20px); }
+  100% { clip-path: inset(50% 0 50% 0); }
 }
 
 @keyframes pulse {
@@ -536,26 +588,20 @@ body{
   50% { box-shadow: 0 0 35px rgba(3, 225, 255, 0.6); }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(180deg); }
-}
-
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  /* <<< ИЗМЕНЕНИЕ: Включаем скролл И позволяем странице расти в высоту */
   html, body {
     overflow: auto;
-    height: auto; /* <-- КЛЮЧЕВОЙ ФИКС */
-  }
-  body { 
-    cursor: auto; 
+    height: auto;
   }
   .lens-viewport, #cursor, #scroll-hint, #particles-container, #geometric-bg { 
     display: none; 
   }
   .mobile-content-container { 
     display: block; 
+  }
+  #bg-canvas {
+    display: none;
   }
 }
 
@@ -665,9 +711,41 @@ body{
   box-shadow: 0 0 20px rgba(0, 255, 163, 0.3);
   transform: translateY(-5px);
 }
+
+#nebula-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(circle at center, rgba(0, 255, 163, 0.02), transparent 50%);
+  opacity: 0.5;
+  will-change: transform;
+  animation: nebula-pulse 30s ease-in-out infinite;
+}
+
+@keyframes nebula-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+.particle-trail {
+  position: absolute;
+  width: 1px; height: 20px;
+  background: linear-gradient(to bottom, white, transparent);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
 </style>
 </head>
 <body>
+
+<!-- <<< ДОБАВЛЕНО: Переключатель языка -->
+<div class="lang-switcher" id="langSwitcher">
+  <span>R</span><span>U</span>
+</div>
 
 <!-- Loading Screen -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -681,6 +759,7 @@ body{
 </div>
 
 <div id="starfield"></div>
+<div id="nebula-bg"></div>
 <div id="particles-container"></div>
 <div id="geometric-bg"></div>
 <div id="scroll-hint">Scroll inside the lens to explore</div>
@@ -692,63 +771,65 @@ body{
       <div class="content-wrapper">
         
         <div class="section hero-wrap" id="hero">
-          <div class="brand-title" id="brandTitle" data-text="KRUTOV EGOR"></div>
-          <div class="brand-sub">[ NAVIGATING THE DIGITAL COSMOS ]</div>
+          <div class="glitch-wrapper">
+            <h1 class="glitch" data-text="KRUTOV EGOR">
+              KRUTOV<br>EGOR
+            </h1>
+          </div>
+          <div class="brand-sub">[ <span data-translate-key="brandSub"></span> ]</div>
           <div class="social-links">
             <a href="https://t.me/kakzheslozhna" class="social-link" title="Telegram">ᯓ➤</a>
           </div>
         </div>
         
         <div class="section" id="about">
-          <h2>[ MISSION_BRIEFING ]</h2>
-          <p>Pioneering full-stack developer focused on the synthesis of artificial intelligence, real-time 3D graphics, and fluid user interfaces. Building digital experiences that transcend the ordinary.</p>
-          <div style="margin-top: 1rem;">
-            <span class="tech-badge">React</span>
-            <span class="tech-badge">Three.js</span>
-            <span class="tech-badge">WebGL</span>
-            <span class="tech-badge">AI/ML</span>
-            <span class="tech-badge">Node.js</span>
-            <span class="tech-badge">WebVR</span>
-          </div>
+          <h2>[ <span data-translate-key="missionTitle"></span> ]</h2>
+          <p data-translate-key="missionText"></p>
         </div>
         
         <div class="section" id="projects">
-          <h2>[ DEPLOYED_ASSETS ]</h2>
+          <h2>[ <span data-translate-key="projectsTitle"></span> ]</h2>
           <div class="project-grid">
             <article class="project-card">
-              <h3>Project Singularity</h3>
-              <p>AI-driven generative art platform with neural style transfer and real-time collaboration features.</p>
+              <h3 data-translate-key="project1Title"></h3>
+              <p data-translate-key="project1Text"></p>
               <div>
-                <span class="tech-badge">TensorFlow</span>
-                <span class="tech-badge">WebGL</span>
-              </div>
-            </article>
-            <article class="project-card">
-              <h3>Aetherium VR</h3>
-              <p>Immersive WebVR portfolio experience with spatial computing and gesture recognition.</p>
-              <div>
-                <span class="tech-badge">WebXR</span>
+                <span class="tech-badge">React</span>
                 <span class="tech-badge">Three.js</span>
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">AI/ML</span>
               </div>
             </article>
             <article class="project-card">
-              <h3>Quantum Dashboard</h3>
-              <p>Real-time data visualization platform with advanced particle systems and interactive analytics.</p>
+              <h3 data-translate-key="project2Title"></h3>
+              <p data-translate-key="project2Text"></p>
               <div>
+                <span class="tech-badge">WebGL</span>
                 <span class="tech-badge">D3.js</span>
                 <span class="tech-badge">WebSocket</span>
+                <span class="tech-badge">PostgreSQL</span>
+              </div>
+            </article>
+            <article class="project-card">
+              <h3 data-translate-key="project3Title"></h3>
+              <p data-translate-key="project3Text"></p>
+              <div>
+                <span class="tech-badge">React</span>
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">MongoDB</span>
+                <span class="tech-badge">Stripe API</span>
               </div>
             </article>
           </div>
         </div>
         
         <div class="section" id="contact">
-          <h2>[ ESTABLISH_CONTACT ]</h2>
+          <h2>[ <span data-translate-key="contactTitle"></span> ]</h2>
           <form id="contact-form-desktop" class="contact-form">
             <input type="text" placeholder="// IDENTIFICATION" required>
             <input type="email" placeholder="// TRANSMISSION_CHANNEL" required>
             <textarea rows="4" placeholder="// MESSAGE_PAYLOAD" required></textarea>
-            <button type="submit">INITIATE TRANSMISSION</button>
+            <button type="submit"><span data-translate-key="contactButton"></span></button>
             <div class="form-status"></div>
           </form>
         </div>
@@ -763,63 +844,65 @@ body{
   <div class="content-wrapper">
     
       <div class="section hero-wrap">
-        <div class="brand-title" id="brandTitleMobile" data-text="KRUTOV EGOR"></div>
-        <div class="brand-sub">[ NAVIGATING THE DIGITAL COSMOS ]</div>
+        <div class="glitch-wrapper">
+           <h1 class="glitch" data-text="KRUTOV EGOR">
+              KRUTOV<br>EGOR
+            </h1>
+        </div>
+        <div class="brand-sub">[ <span data-translate-key="brandSub_mobile"></span> ]</div>
         <div class="social-links">
           <a href="https://t.me/kakzheslozhna" class="social-link" title="Telegram">ᯓ➤</a>
         </div>
       </div>
       
       <div class="section">
-        <h2>[ MISSION_BRIEFING ]</h2>
-        <p>Pioneering full-stack developer focused on the synthesis of artificial intelligence, real-time 3D graphics, and fluid user interfaces. Building digital experiences that transcend the ordinary.</p>
-        <div style="margin-top: 1rem;">
-          <span class="tech-badge">React</span>
-          <span class="tech-badge">Three.js</span>
-          <span class="tech-badge">WebGL</span>
-          <span class="tech-badge">AI/ML</span>
-          <span class="tech-badge">Node.js</span>
-          <span class="tech-badge">WebVR</span>
-        </div>
+        <h2>[ <span data-translate-key="missionTitle_mobile"></span> ]</h2>
+        <p data-translate-key="missionText_mobile"></p>
       </div>
       
       <div class="section">
-        <h2>[ DEPLOYED_ASSETS ]</h2>
+        <h2>[ <span data-translate-key="projectsTitle_mobile"></span> ]</h2>
         <div class="project-grid">
-          <article class="project-card">
-            <h3>Project Singularity</h3>
-            <p>AI-driven generative art platform with neural style transfer and real-time collaboration features.</p>
-            <div>
-              <span class="tech-badge">TensorFlow</span>
-              <span class="tech-badge">WebGL</span>
-            </div>
-          </article>
-          <article class="project-card">
-            <h3>Aetherium VR</h3>
-            <p>Immersive WebVR portfolio experience with spatial computing and gesture recognition.</p>
-            <div>
-              <span class="tech-badge">WebXR</span>
-              <span class="tech-badge">Three.js</span>
-            </div>
-          </article>
-          <article class="project-card">
-            <h3>Quantum Dashboard</h3>
-            <p>Real-time data visualization platform with advanced particle systems and interactive analytics.</p>
-            <div>
-              <span class="tech-badge">D3.js</span>
-              <span class="tech-badge">WebSocket</span>
-            </div>
-          </article>
+            <article class="project-card">
+              <h3 data-translate-key="project1Title_mobile"></h3>
+              <p data-translate-key="project1Text_mobile"></p>
+              <div>
+                <span class="tech-badge">React</span>
+                <span class="tech-badge">Three.js</span>
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">AI/ML</span>
+              </div>
+            </article>
+            <article class="project-card">
+              <h3 data-translate-key="project2Title_mobile"></h3>
+              <p data-translate-key="project2Text_mobile"></p>
+              <div>
+                <span class="tech-badge">WebGL</span>
+                <span class="tech-badge">D3.js</span>
+                <span class="tech-badge">WebSocket</span>
+                <span class="tech-badge">PostgreSQL</span>
+              </div>
+            </article>
+            <article class="project-card">
+              <h3 data-translate-key="project3Title_mobile"></h3>
+              <p data-translate-key="project3Text_mobile"></p>
+              <div>
+                <span class="tech-badge">React</span>
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">MongoDB</span>
+                <span class="tech-badge">Stripe API</span>
+              </div>
+            </article>
         </div>
       </div>
       
       <div class="section">
-        <h2>[ ESTABLISH_CONTACT ]</h2>
+        <h2>[ <span data-translate-key="contactTitle_mobile"></span> ]</h2>
         <form id="contact-form-mobile" class="contact-form">
           <input type="text" placeholder="// IDENTIFICATION" required>
           <input type="email" placeholder="// TRANSMISSION_CHANNEL" required>
           <textarea rows="4" placeholder="// MESSAGE_PAYLOAD" required></textarea>
-          <button type="submit">INITIATE TRANSMISSION</button>
+          <button type="submit"><span data-translate-key="contactButton_mobile"></span></button>
           <div class="form-status"></div>
         </form>
       </div>
@@ -833,22 +916,93 @@ body{
 document.addEventListener('DOMContentLoaded', () => {
   gsap.registerPlugin(ScrollTrigger);
 
-  const titleText = "KRUTOV EGOR";
   let cursorHasMoved = false;
   let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
-  // Initialize elements
   const lens = document.getElementById('lens');
   const lensContent = document.getElementById('lens-content');
   const cursor = document.getElementById('cursor');
-  const starfield = document.getElementById('starfield');
   const scrollHint = document.getElementById('scroll-hint');
   const loadingOverlay = document.getElementById('loadingOverlay');
+  const langSwitcher = document.getElementById('langSwitcher');
 
-  gsap.set(lens, { scale: 0, opacity: 0 });
-  gsap.set(cursor, { opacity: 0 });
+  let targetScroll = 0;
+  let currentScroll = 0;
+  const scrollSmoothness = 0.07;
+  
+  // <<< ДОБАВЛЕНО: Локализация
+  let currentLang = 'ru';
+  const translations = {
+    ru: {
+      brandSub: "НАВИГАЦИЯ В ЦИФРОВОМ КОСМОСЕ",
+      missionTitle: "СВОДКА",
+      missionText: "Full-stack разработчик, сфокусированный на создании иммерсивных цифровых продуктов. Специализируюсь на пересечении современных фронтенд-технологий, таких как React и Three.js, с мощными и масштабируемыми бэкенд-системами. Моя цель — превращать сложные задачи в интуитивно понятные и визуально впечатляющие приложения.",
+      projectsTitle: "АКТИВЫ",
+      project1Title: "Интерактивная платформа генеративного искусства",
+      project1Text: "Веб-приложение, позволяющее пользователям создавать уникальные визуализации на основе AI-алгоритмов. Рендеринг в реальном времени осуществляется с помощью Three.js/WebGL.",
+      project2Title: "3D-дэшборд для аналитики данных",
+      project2Text: "Платформа для визуализации сложных наборов данных в интерактивном 3D-пространстве. Поддерживает стриминг данных в реальном времени через WebSocket.",
+      project3Title: "Высокопроизводительная E-commerce платформа",
+      project3Text: "Полнофункциональное решение для интернет-магазина, построенное на MERN-стеке с JWT-аутентификацией, интеграцией платежной системы Stripe и state-менеджментом.",
+      contactTitle: "УСТАНОВИТЬ КОНТАКТ",
+      contactButton: "НАЧАТЬ ПЕРЕДАЧУ",
+    },
+    en: {
+      brandSub: "NAVIGATING THE DIGITAL COSMOS",
+      missionTitle: "MISSION BRIEFING",
+      missionText: "A full-stack developer focused on creating immersive digital products. I specialize in the intersection of modern front-end technologies like React and Three.js with powerful and scalable back-end systems. My goal is to transform complex challenges into intuitive and visually stunning applications.",
+      projectsTitle: "DEPLOYED ASSETS",
+      project1Title: "Interactive Generative Art Platform",
+      project1Text: "A web application allowing users to create unique visualizations based on AI algorithms. Real-time rendering is handled using Three.js/WebGL.",
+      project2Title: "3D Data Analytics Dashboard",
+      project2Text: "A platform for visualizing complex datasets in an interactive 3D space. Supports real-time data streaming via WebSockets.",
+      project3Title: "High-Performance E-commerce Platform",
+      project3Text: "A full-featured e-commerce solution built on the MERN stack with JWT authentication, Stripe payment integration, and state management.",
+      contactTitle: "ESTABLISH CONTACT",
+      contactButton: "INITIATE TRANSMISSION",
+    }
+  };
+  
+  // Ключи для мобильной версии, которые дублируют десктопные
+  translations.ru.brandSub_mobile = translations.ru.brandSub;
+  translations.ru.missionTitle_mobile = translations.ru.missionTitle;
+  translations.ru.missionText_mobile = translations.ru.missionText;
+  translations.ru.projectsTitle_mobile = translations.ru.projectsTitle;
+  translations.ru.project1Title_mobile = translations.ru.project1Title;
+  translations.ru.project1Text_mobile = translations.ru.project1Text;
+  translations.ru.project2Title_mobile = translations.ru.project2Title;
+  translations.ru.project2Text_mobile = translations.ru.project2Text;
+  translations.ru.project3Title_mobile = translations.ru.project3Title;
+  translations.ru.project3Text_mobile = translations.ru.project3Text;
+  translations.ru.contactTitle_mobile = translations.ru.contactTitle;
+  translations.ru.contactButton_mobile = translations.ru.contactButton;
 
-  // Hide loading screen
+  translations.en.brandSub_mobile = translations.en.brandSub;
+  translations.en.missionTitle_mobile = translations.en.missionTitle;
+  translations.en.missionText_mobile = translations.en.missionText;
+  translations.en.projectsTitle_mobile = translations.en.projectsTitle;
+  translations.en.project1Title_mobile = translations.en.project1Title;
+  translations.en.project1Text_mobile = translations.en.project1Text;
+  translations.en.project2Title_mobile = translations.en.project2Title;
+  translations.en.project2Text_mobile = translations.en.project2Text;
+  translations.en.project3Title_mobile = translations.en.project3Title;
+  translations.en.project3Text_mobile = translations.en.project3Text;
+  translations.en.contactTitle_mobile = translations.en.contactTitle;
+  translations.en.contactButton_mobile = translations.en.contactButton;
+
+
+  // Функция смены языка
+  function changeLanguage(lang) {
+    document.documentElement.lang = lang;
+    const elements = document.querySelectorAll('[data-translate-key]');
+    elements.forEach(el => {
+      const key = el.dataset.translateKey;
+      if (translations[lang] && translations[lang][key]) {
+        el.innerHTML = translations[lang][key];
+      }
+    });
+  }
+
   setTimeout(() => {
     gsap.to(loadingOverlay, { 
       opacity: 0, duration: 1, 
@@ -859,51 +1013,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, 1000);
 
-  function createTitle(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    container.innerHTML = '';
-    titleText.split('').forEach(char => {
-      const span = document.createElement('span');
-      span.className = 'brand-letter';
-      span.textContent = char === ' ' ? '\u00A0' : char;
-      container.appendChild(span);
-    });
-  }
-
-  function animateTitle(containerId) {
-    const letters = document.querySelectorAll(`#${containerId} .brand-letter`);
-    gsap.from(letters, {
-      opacity: 0, scale: 0.8,
-      rotationZ: () => gsap.utils.random(-40, 40),
-      y: () => gsap.utils.random(-50, 50),
-      duration: 1.5, ease: 'power3.out',
-      stagger: { each: 0.05, from: 'random' }
-    });
-  }
-
   function createParticles() {
     const container = document.getElementById('particles-container');
     if (!container) return;
-
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 50; i++) {
       const particle = document.createElement('div');
       particle.className = 'particle';
       const x = Math.random() * window.innerWidth;
       const y = Math.random() * window.innerHeight;
-      gsap.set(particle, {
-        x: x, y: y,
-        scale: Math.random() * 0.5 + 0.3,
-        opacity: Math.random() * 0.3 + 0.1
-      });
+      gsap.set(particle, { x: x, y: y, scale: Math.random() * 0.8 + 0.2, opacity: Math.random() * 0.4 + 0.1 });
       container.appendChild(particle);
-      gsap.to(particle, {
-        x: x + (Math.random() - 0.5) * 200,
-        y: y + (Math.random() - 0.5) * 200,
-        duration: Math.random() * 10 + 5,
-        repeat: -1, yoyo: true, ease: "none"
-      });
+      gsap.to(particle, { x: x + (Math.random() - 0.5) * 300, y: y + (Math.random() - 0.5) * 300, duration: Math.random() * 15 + 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      const trail = document.createElement('div');
+      trail.className = 'particle-trail';
+      gsap.set(trail, { x: x, y: y, rotation: Math.random() * 360 });
+      container.appendChild(trail);
+      gsap.to(trail, { x: x + (Math.random() - 0.5) * 300, y: y + (Math.random() - 0.5) * 300, duration: Math.random() * 15 + 10, repeat: -1, yoyo: true, ease: "sine.inOut", opacity: 0.2 });
     }
   }
 
@@ -911,22 +1036,101 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('geometric-bg');
     if (!container) return;
     const shapes = ['geo-triangle', 'geo-circle', 'geo-square'];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 20; i++) {
       const shape = document.createElement('div');
       const shapeClass = shapes[Math.floor(Math.random() * shapes.length)];
       shape.className = `geo-shape ${shapeClass}`;
       const x = Math.random() * window.innerWidth;
       const y = Math.random() * window.innerHeight;
-      gsap.set(shape, { x: x, y: y, rotation: Math.random() * 360 });
+      gsap.set(shape, { x: x, y: y, rotation: Math.random() * 360, scale: Math.random() * 1.5 + 0.5 });
       container.appendChild(shape);
-      gsap.to(shape, {
-        rotation: "+=360", duration: Math.random() * 20 + 10,
-        repeat: -1, ease: "none"
-      });
+      gsap.to(shape, { rotation: "+=360", duration: Math.random() * 30 + 15, repeat: -1, ease: "none" });
+      gsap.to(shape, { x: x + (Math.random() - 0.5) * 100, y: y + (Math.random() - 0.5) * 100, duration: Math.random() * 10 + 5, repeat: -1, yoyo: true, ease: "sine.inOut" });
     }
   }
 
+  function initThreeJS() {
+    if (window.innerWidth < 769) return;
+    const canvas = document.createElement('canvas');
+    canvas.id = 'bg-canvas';
+    document.body.insertBefore(canvas, document.body.firstChild); 
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    const starGeometry = new THREE.BufferGeometry();
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, sizeAttenuation: true });
+    const starsVertices = [];
+    for (let i = 0; i < 10000; i++) {
+      starsVertices.push((Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 2000, (Math.random() - 0.5) * 2000);
+    }
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+    camera.position.z = 1000;
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      stars.rotation.y += 0.0001;
+      const xPercent = (mouse.x / window.innerWidth - 0.5) * 2;
+      const yPercent = (mouse.y / window.innerHeight - 0.5) * 2;
+      camera.position.x = xPercent * 200;
+      camera.position.y = yPercent * 200;
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+    }
+    animateThree();
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  }
+
   function initializeInteractions() {
+    initThreeJS();
+    changeLanguage(currentLang); // Устанавливаем язык при загрузке
+    
+    // <<< ДОБАВЛЕНО: Логика переключателя языка
+    langSwitcher.addEventListener('click', () => {
+      // Блокируем повторное нажатие во время анимации
+      if (gsap.isTweening(langSwitcher)) return;
+
+      const newLang = currentLang === 'ru' ? 'en' : 'ru';
+      const oldLangText = currentLang.toUpperCase();
+      const newLangText = newLang.toUpperCase();
+
+      const chars = langSwitcher.querySelectorAll('span');
+      
+      const tl = gsap.timeline();
+      tl.to(chars, {
+        opacity: 0,
+        scale: 0.5,
+        x: () => gsap.utils.random(-30, 30),
+        y: () => gsap.utils.random(-30, 30),
+        rotation: () => gsap.utils.random(-90, 90),
+        duration: 0.3,
+        stagger: 0.1,
+        ease: 'power2.in',
+        onComplete: () => {
+          // Меняем язык и текст в свитчере в середине анимации
+          currentLang = newLang;
+          changeLanguage(currentLang);
+          langSwitcher.innerHTML = `<span>${newLangText[0]}</span><span>${newLangText[1]}</span>`;
+        }
+      })
+      .from(langSwitcher.querySelectorAll('span'), {
+        opacity: 0,
+        scale: 0.5,
+        x: () => gsap.utils.random(-30, 30),
+        y: () => gsap.utils.random(-30, 30),
+        rotation: () => gsap.utils.random(-90, 90),
+        duration: 0.3,
+        stagger: 0.1,
+        ease: 'power2.out'
+      });
+    });
+
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
@@ -935,15 +1139,20 @@ document.addEventListener('DOMContentLoaded', () => {
         gsap.to(cursor, { opacity: 1, duration: 0.5 });
         gsap.to(lens, { scale: 1, opacity: 1, duration: 1.5, ease: 'expo.out' });
         setTimeout(() => {
-          gsap.to(scrollHint, { 
-            opacity: 1, duration: 1,
-            repeat: 2, yoyo: true, repeatDelay: 1
-          });
+          gsap.to(scrollHint, { opacity: 1, duration: 1, repeat: 2, yoyo: true, repeatDelay: 1 });
         }, 2000);
       }
     });
 
-    const interactiveElements = document.querySelectorAll('button, a, input, textarea, .project-card, .tech-badge, .social-link');
+    window.addEventListener('wheel', (e) => {
+      if (window.innerWidth < 769) return;
+      e.preventDefault();
+      targetScroll += e.deltaY;
+      const maxScroll = lensContent.scrollHeight - lensContent.clientHeight;
+      targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+    }, { passive: false });
+
+    const interactiveElements = document.querySelectorAll('a, button, input, textarea, .project-card, .tech-badge, .social-link, .lang-switcher');
     interactiveElements.forEach(el => {
       el.addEventListener('mouseenter', () => cursor.classList.add('active'));
       el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
@@ -962,22 +1171,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = form.querySelector('button');
     const statusEl = form.querySelector('.form-status');
     const originalText = button.textContent;
-
     statusEl.classList.remove('success', 'error');
     gsap.to(statusEl, { opacity: 0, y: 10, duration: 0.3 });
-
     button.textContent = 'TRANSMITTING...';
     button.disabled = true;
     button.classList.add('submitting');
-    
     setTimeout(() => {
         button.classList.remove('submitting');
         button.textContent = 'TRANSMISSION COMPLETE';
-        
         statusEl.textContent = '[ SUCCESS: MESSAGE RECEIVED ]';
         statusEl.classList.add('success');
         gsap.to(statusEl, { opacity: 1, y: 0, duration: 0.5 });
-
         setTimeout(() => {
             button.textContent = originalText;
             button.disabled = false;
@@ -992,74 +1196,32 @@ document.addEventListener('DOMContentLoaded', () => {
   function startAnimationLoop() {
     const TILT_AMOUNT = 15;
     const PARALLAX_AMOUNT = 30;
-
     function animate() {
       if (cursorHasMoved) {
+        const scrollDiff = targetScroll - currentScroll;
+        if (Math.abs(scrollDiff) > 0.1) {
+          currentScroll += scrollDiff * scrollSmoothness;
+          lensContent.scrollTop = currentScroll;
+        }
         const xPercent = (mouse.x / window.innerWidth - 0.5) * 2;
         const yPercent = (mouse.y / window.innerHeight - 0.5) * 2;
-
-        gsap.to(lens, {
-          rotationY: xPercent * TILT_AMOUNT,
-          rotationX: -yPercent * TILT_AMOUNT,
-          duration: 0.8,
-          ease: 'power2.out'
-        });
-
-        gsap.to(lensContent, {
-          x: -xPercent * PARALLAX_AMOUNT,
-          y: -yPercent * PARALLAX_AMOUNT,
-          duration: 1.2,
-          ease: 'power3.out'
-        });
+        gsap.to(lens, { rotationY: xPercent * TILT_AMOUNT, rotationX: -yPercent * TILT_AMOUNT, duration: 0.8, ease: 'power2.out' });
+        gsap.to(lensContent, { x: -xPercent * PARALLAX_AMOUNT, y: -yPercent * PARALLAX_AMOUNT, duration: 1.2, ease: 'power3.out' });
       }
-      
       if (cursor) {
         gsap.set(cursor, { left: mouse.x, top: mouse.y });
       }
-      
-      if (starfield) {
-        const xPercent = (mouse.x / window.innerWidth - 0.5) * 2;
-        gsap.set(starfield, { x: -xPercent * 20 });
-      }
-      
       requestAnimationFrame(animate);
     }
     animate();
   }
-
-  function setupMagneticEffect() {
-    const brandTitle = document.getElementById('brandTitle');
-    const brandLetters = gsap.utils.toArray('#brandTitle .brand-letter');
-
-    if (brandTitle && brandLetters.length > 0) {
-      brandTitle.addEventListener('mousemove', (e) => {
-        brandLetters.forEach(letter => {
-          const letterRect = letter.getBoundingClientRect();
-          const letterCenterX = letterRect.left + letterRect.width / 2;
-          const letterCenterY = letterRect.top + letterRect.height / 2;
-          const deltaX = (e.clientX - letterCenterX) * 0.2;
-          const deltaY = (e.clientY - letterCenterY) * 0.2;
-          gsap.to(letter, { x: deltaX, y: deltaY, duration: 0.3, ease: 'power2.out' });
-        });
-      });
-
-      brandTitle.addEventListener('mouseleave', () => {
-        gsap.to(brandLetters, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
-      });
-    }
-  }
-
+  
   ScrollTrigger.matchMedia({
     "(min-width: 769px)": function() {
-      createTitle('brandTitle');
-      animateTitle('brandTitle');
-      setupMagneticEffect();
       createParticles();
       createGeometricShapes();
     },
     "(max-width: 768px)": function() {
-      createTitle('brandTitleMobile');
-      animateTitle('brandTitleMobile');
       gsap.utils.toArray('.mobile-content-container .section').forEach(section => {
         gsap.from(section.children, {
           opacity: 0, y: 50, duration: 1, stagger: 0.1,
