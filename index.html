@@ -13,7 +13,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 
 <!-- Fonts -->
-<link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Roboto+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
@@ -45,7 +44,6 @@ body{
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing:antialiased;
   position: relative;
-  /* <<< ДОБАВЛЕНО: Стили для отключения выделения текста */
   user-select: none; /* Стандартный синтаксис */
   -webkit-user-select: none; /* Safari */
   -moz-user-select: none; /* Firefox */
@@ -687,12 +685,13 @@ body, body * {
   box-shadow: 0 5px 15px rgba(0, 255, 163, 0.2);
 }
 
-/* Social Links */
+/* === Стили для интерактивной иконки "Сканер-Прицел" === */
 .social-links {
   display: flex;
   gap: 1rem;
   justify-content: center;
   margin-top: 2rem;
+  padding-bottom: 30px; /* Отступ для подписи */
 }
 
 .social-link {
@@ -707,15 +706,83 @@ body, body * {
   transition: all 0.3s ease;
   backdrop-filter: blur(5px);
   background: rgba(255,255,255,0.05);
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  position: relative;
+  /* overflow: hidden;  <-- Это свойство обрезало подпись. Оно убрано. */
 }
 
+.social-icon-svg {
+  width: 1em;
+  height: 1em;
+  transition: all 0.4s ease;
+  z-index: 2;
+  position: relative;
+}
+
+/* НОВЫЙ ЭФФЕКТ: ИЗЯЩНЫЕ СКАНИРУЮЩИЕ УГОЛКИ */
+.scanner-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1px solid transparent; /* Толщина линии 1px */
+  opacity: 0;
+  /* Продвинутая анимация с "отскоком" */
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 3;
+}
+
+/* Задаем L-образную форму для каждого уголка */
+.scanner-corner.tl { top: 5px; left: 5px; border-top-color: var(--accent-a); border-left-color: var(--accent-a); }
+.scanner-corner.tr { top: 5px; right: 5px; border-top-color: var(--accent-a); border-right-color: var(--accent-a); }
+.scanner-corner.bl { bottom: 5px; left: 5px; border-bottom-color: var(--accent-a); border-left-color: var(--accent-a); }
+.scanner-corner.br { bottom: 5px; right: 5px; border-bottom-color: var(--accent-a); border-right-color: var(--accent-a); }
+
+/* Начальное состояние анимации - уголки сдвинуты и повернуты */
+.social-link .scanner-corner.tl { transform: translate(-5px, -5px) rotate(-15deg); }
+.social-link .scanner-corner.tr { transform: translate(5px, -5px) rotate(15deg); }
+.social-link .scanner-corner.bl { transform: translate(-5px, 5px) rotate(15deg); }
+.social-link .scanner-corner.br { transform: translate(5px, 5px) rotate(-15deg); }
+
+
+.social-label {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--accent-a);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(0, 255, 163, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  backdrop-filter: blur(3px);
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* Состояния при наведении */
 .social-link:hover {
   border-color: var(--accent-a);
   color: var(--accent-a);
   box-shadow: 0 0 20px rgba(0, 255, 163, 0.3);
-  transform: translateY(-5px);
+  transform: translateY(-5px) scale(1.05);
 }
+
+.social-link:hover .social-icon-svg {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+/* Конечное состояние анимации - уголки становятся на место */
+.social-link:hover .scanner-corner {
+  opacity: 1;
+  transform: translate(0, 0) rotate(0deg);
+}
+/* === КОНЕЦ СТИЛЕЙ ДЛЯ ИКОНКИ === */
 
 #nebula-bg {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -745,20 +812,16 @@ body, body * {
 }
 </style>
 </head>
-<!-- <<< ДОБАВЛЕНО: Отключаем контекстное меню (правый клик) -->
 <body oncontextmenu="return false;">
 
-<!-- <<< ДОБАВЛЕНО: Переключатель языка -->
 <div class="lang-switcher" id="langSwitcher">
   <span>R</span><span>U</span>
 </div>
 
-<!-- Loading Screen -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-text">INITIALIZING...</div>
 </div>
 
-<!-- Status Indicator -->
 <div class="status-indicator">
   <div class="status-dot"></div>
   <span>CONNECTED</span>
@@ -784,7 +847,17 @@ body, body * {
           </div>
           <div class="brand-sub">[ <span data-translate-key="brandSub"></span> ]</div>
           <div class="social-links">
-            <a href="https://t.me/kakzheslozhna" class="social-link" title="Telegram">ᯓ➤</a>
+            <a href="https://t.me/kakzheslozhna" target="_blank" class="social-link" title="Telegram">
+                <svg class="social-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-1.37.2-1.64l16.14-5.7c.73-.27 1.36.17 1.15.94l-2.67 12.6c-.22.99-1.21 1.22-1.87.73l-4.11-3.4-1.98 1.9c-.2.2-.37.37-.74.37z"></path>
+                </svg>
+                <!-- Обновленные сканирующие уголки -->
+                <span class="scanner-corner tl"></span>
+                <span class="scanner-corner tr"></span>
+                <span class="scanner-corner bl"></span>
+                <span class="scanner-corner br"></span>
+                <span class="social-label">[ TELEGRAM ]</span>
+            </a>
           </div>
         </div>
         
@@ -800,30 +873,30 @@ body, body * {
               <h3 data-translate-key="project1Title"></h3>
               <p data-translate-key="project1Text"></p>
               <div>
-                <span class="tech-badge">React</span>
-                <span class="tech-badge">Three.js</span>
+                <span class="tech-badge">HTML5</span>
+                <span class="tech-badge">CSS3 (Sass)</span>
+                <span class="tech-badge">JavaScript (ES6+)</span>
                 <span class="tech-badge">Node.js</span>
-                <span class="tech-badge">AI/ML</span>
               </div>
             </article>
             <article class="project-card">
               <h3 data-translate-key="project2Title"></h3>
               <p data-translate-key="project2Text"></p>
               <div>
-                <span class="tech-badge">WebGL</span>
-                <span class="tech-badge">D3.js</span>
-                <span class="tech-badge">WebSocket</span>
-                <span class="tech-badge">PostgreSQL</span>
+                <span class="tech-badge">C#</span>
+                <span class="tech-badge">WPF</span>
+                <span class="tech-badge">.NET Framework</span>
+                <span class="tech-badge">MVVM</span>
               </div>
             </article>
             <article class="project-card">
               <h3 data-translate-key="project3Title"></h3>
               <p data-translate-key="project3Text"></p>
               <div>
-                <span class="tech-badge">React</span>
-                <span class="tech-badge">Node.js</span>
-                <span class="tech-badge">MongoDB</span>
-                <span class="tech-badge">Stripe API</span>
+                <span class="tech-badge">Linux (Debian/CentOS)</span>
+                <span class="tech-badge">Docker</span>
+                <span class="tech-badge">GitLab CI</span>
+                <span class="tech-badge">Bash</span>
               </div>
             </article>
           </div>
@@ -832,9 +905,9 @@ body, body * {
         <div class="section" id="contact">
           <h2>[ <span data-translate-key="contactTitle"></span> ]</h2>
           <form id="contact-form-desktop" class="contact-form">
-            <input type="text" placeholder="// IDENTIFICATION" required>
-            <input type="email" placeholder="// TRANSMISSION_CHANNEL" required>
-            <textarea rows="4" placeholder="// MESSAGE_PAYLOAD" required></textarea>
+            <input type="text" name="name" placeholder="// IDENTIFICATION" required>
+            <input type="email" name="email" placeholder="// TRANSMISSION_CHANNEL" required>
+            <textarea name="message" rows="4" placeholder="// MESSAGE_PAYLOAD" required></textarea>
             <button type="submit"><span data-translate-key="contactButton"></span></button>
             <div class="form-status"></div>
           </form>
@@ -857,7 +930,16 @@ body, body * {
         </div>
         <div class="brand-sub">[ <span data-translate-key="brandSub_mobile"></span> ]</div>
         <div class="social-links">
-          <a href="https://t.me/kakzheslozhna" class="social-link" title="Telegram">ᯓ➤</a>
+            <a href="https://t.me/kakzheslozhna" target="_blank" class="social-link" title="Telegram">
+                <svg class="social-icon-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-1.37.2-1.64l16.14-5.7c.73-.27 1.36.17 1.15.94l-2.67 12.6c-.22.99-1.21 1.22-1.87.73l-4.11-3.4-1.98 1.9c-.2.2-.37.37-.74.37z"></path>
+                </svg>
+                <span class="scanner-corner tl"></span>
+                <span class="scanner-corner tr"></span>
+                <span class="scanner-corner bl"></span>
+                <span class="scanner-corner br"></span>
+                <span class="social-label">[ TELEGRAM ]</span>
+            </a>
         </div>
       </div>
       
@@ -873,30 +955,30 @@ body, body * {
               <h3 data-translate-key="project1Title_mobile"></h3>
               <p data-translate-key="project1Text_mobile"></p>
               <div>
-                <span class="tech-badge">React</span>
-                <span class="tech-badge">Three.js</span>
+                <span class="tech-badge">HTML5</span>
+                <span class="tech-badge">CSS3 (Sass)</span>
+                <span class="tech-badge">JavaScript (ES6+)</span>
                 <span class="tech-badge">Node.js</span>
-                <span class="tech-badge">AI/ML</span>
               </div>
             </article>
             <article class="project-card">
               <h3 data-translate-key="project2Title_mobile"></h3>
               <p data-translate-key="project2Text_mobile"></p>
               <div>
-                <span class="tech-badge">WebGL</span>
-                <span class="tech-badge">D3.js</span>
-                <span class="tech-badge">WebSocket</span>
-                <span class="tech-badge">PostgreSQL</span>
+                <span class="tech-badge">C#</span>
+                <span class="tech-badge">WPF</span>
+                <span class="tech-badge">.NET Framework</span>
+                <span class="tech-badge">MVVM</span>
               </div>
             </article>
             <article class="project-card">
               <h3 data-translate-key="project3Title_mobile"></h3>
               <p data-translate-key="project3Text_mobile"></p>
               <div>
-                <span class="tech-badge">React</span>
-                <span class="tech-badge">Node.js</span>
-                <span class="tech-badge">MongoDB</span>
-                <span class="tech-badge">Stripe API</span>
+                <span class="tech-badge">Linux (Debian/CentOS)</span>
+                <span class="tech-badge">Docker</span>
+                <span class="tech-badge">GitLab CI</span>
+                <span class="tech-badge">Bash</span>
               </div>
             </article>
         </div>
@@ -905,9 +987,9 @@ body, body * {
       <div class="section">
         <h2>[ <span data-translate-key="contactTitle_mobile"></span> ]</h2>
         <form id="contact-form-mobile" class="contact-form">
-          <input type="text" placeholder="// IDENTIFICATION" required>
-          <input type="email" placeholder="// TRANSMISSION_CHANNEL" required>
-          <textarea rows="4" placeholder="// MESSAGE_PAYLOAD" required></textarea>
+          <input type="text" name="name" placeholder="// IDENTIFICATION" required>
+          <input type="email" name="email" placeholder="// TRANSMISSION_CHANNEL" required>
+          <textarea name="message" rows="4" placeholder="// MESSAGE_PAYLOAD" required></textarea>
           <button type="submit"><span data-translate-key="contactButton_mobile"></span></button>
           <div class="form-status"></div>
         </form>
@@ -919,22 +1001,17 @@ body, body * {
 <div id="cursor"></div>
 
 <script>
-// <<< ДОБАВЛЕНО: Скрипт для блокировки клавиш
 document.addEventListener('keydown', function (e) {
-    // Блокируем F12
     if (e.key === 'F12' || e.keyCode === 123) {
         e.preventDefault();
     }
-    // Блокируем Ctrl+Shift+I
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
         e.preventDefault();
     }
-    // Блокируем Ctrl+Shift+J
-    if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
         e.preventDefault();
     }
-    // Блокируем Ctrl+U
-    if (e.ctrlKey && e.key === 'U') {
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
         e.preventDefault();
     }
 });
@@ -956,40 +1033,38 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentScroll = 0;
   const scrollSmoothness = 0.07;
   
-  // <<< ДОБАВЛЕНО: Локализация
   let currentLang = 'ru';
   const translations = {
     ru: {
-      brandSub: "НАВИГАЦИЯ В ЦИФРОВОМ КОСМОСЕ",
+      brandSub: "РАЗРАБОТКА И АДМИНИСТРИРОВАНИЕ СИСТЕМ",
       missionTitle: "СВОДКА",
-      missionText: "Full-stack разработчик, сфокусированный на создании иммерсивных цифровых продуктов. Специализируюсь на пересечении современных фронтенд-технологий, таких как React и Three.js, с мощными и масштабируемыми бэкенд-системами. Моя цель — превращать сложные задачи в интуитивно понятные и визуально впечатляющие приложения.",
-      projectsTitle: "АКТИВЫ",
-      project1Title: "Интерактивная платформа генеративного искусства",
-      project1Text: "Веб-приложение, позволяющее пользователям создавать уникальные визуализации на основе AI-алгоритмов. Рендеринг в реальном времени осуществляется с помощью Three.js/WebGL.",
-      project2Title: "3D-дэшборд для аналитики данных",
-      project2Text: "Платформа для визуализации сложных наборов данных в интерактивном 3D-пространстве. Поддерживает стриминг данных в реальном времени через WebSocket.",
-      project3Title: "Высокопроизводительная E-commerce платформа",
-      project3Text: "Полнофункциональное решение для интернет-магазина, построенное на MERN-стеке с JWT-аутентификацией, интеграцией платежной системы Stripe и state-менеджментом.",
+      missionText: "Многопрофильный специалист, решающий задачи на стыке разработки и системного администрирования. Создаю надежные веб-сервисы, функциональные desktop-приложения и выстраиваю стабильную IT-инфраструктуру для их работы. Моя цель — обеспечить полный жизненный цикл продукта: от написания кода до развертывания и поддержки.",
+      projectsTitle: "КЛЮЧЕВЫЕ КОМПЕТЕНЦИИ",
+      project1Title: "Web-разработка",
+      project1Text: "Разработка фронтенда и бэкенда для многофункциональных веб-приложений. Адаптивная верстка, интерактивные элементы на JS, построение API и серверная логика.",
+      project2Title: "Desktop-разработка",
+      project2Text: "Создание desktop-приложений на платформе .NET для Windows. Проектирование интуитивно понятных интерфейсов на WPF с использованием паттерна MVVM для эффективного управления состоянием.",
+      project3Title: "Системное администрирование",
+      project3Text: "Настройка и поддержка серверной инфраструктуры на базе Linux. Внедрение CI/CD для автоматизации развертывания, контейнеризация приложений с помощью Docker, мониторинг и обеспечение безопасности.",
       contactTitle: "УСТАНОВИТЬ КОНТАКТ",
       contactButton: "НАЧАТЬ ПЕРЕДАЧУ",
     },
     en: {
-      brandSub: "NAVIGATING THE DIGITAL COSMOS",
+      brandSub: "SYSTEMS DEVELOPMENT AND ADMINISTRATION",
       missionTitle: "MISSION BRIEFING",
-      missionText: "A full-stack developer focused on creating immersive digital products. I specialize in the intersection of modern front-end technologies like React and Three.js with powerful and scalable back-end systems. My goal is to transform complex challenges into intuitive and visually stunning applications.",
-      projectsTitle: "DEPLOYED ASSETS",
-      project1Title: "Interactive Generative Art Platform",
-      project1Text: "A web application allowing users to create unique visualizations based on AI algorithms. Real-time rendering is handled using Three.js/WebGL.",
-      project2Title: "3D Data Analytics Dashboard",
-      project2Text: "A platform for visualizing complex datasets in an interactive 3D space. Supports real-time data streaming via WebSockets.",
-      project3Title: "High-Performance E-commerce Platform",
-      project3Text: "A full-featured e-commerce solution built on the MERN stack with JWT authentication, Stripe payment integration, and state management.",
+      missionText: "A multidisciplinary specialist solving problems at the intersection of development and system administration. I create robust web services, functional desktop applications, and build stable IT infrastructure for them. My goal is to manage the full product lifecycle: from writing code to deployment and maintenance.",
+      projectsTitle: "CORE COMPETENCIES",
+      project1Title: "Web Development",
+      project1Text: "Developing both frontend and backend for multi-functional web applications. Responsive design, interactive JS elements, API construction, and server-side logic.",
+      project2Title: "Desktop Development",
+      project2Text: "Creating desktop applications on the .NET platform for Windows. Designing intuitive user interfaces with WPF using the MVVM pattern for effective state management.",
+      project3Title: "System Administration",
+      project3Text: "Configuring and maintaining Linux-based server infrastructure. Implementing CI/CD for deployment automation, containerizing applications with Docker, monitoring, and ensuring security.",
       contactTitle: "ESTABLISH CONTACT",
       contactButton: "INITIATE TRANSMISSION",
     }
   };
   
-  // Ключи для мобильной версии, которые дублируют десктопные
   translations.ru.brandSub_mobile = translations.ru.brandSub;
   translations.ru.missionTitle_mobile = translations.ru.missionTitle;
   translations.ru.missionText_mobile = translations.ru.missionText;
@@ -1016,8 +1091,6 @@ document.addEventListener('DOMContentLoaded', () => {
   translations.en.contactTitle_mobile = translations.en.contactTitle;
   translations.en.contactButton_mobile = translations.en.contactButton;
 
-
-  // Функция смены языка
   function changeLanguage(lang) {
     document.documentElement.lang = lang;
     const elements = document.querySelectorAll('[data-translate-key]');
@@ -1115,17 +1188,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function initializeInteractions() {
     initThreeJS();
-    changeLanguage(currentLang); // Устанавливаем язык при загрузке
+    changeLanguage(currentLang);
     
-    // <<< ДОБАВЛЕНО: Логика переключателя языка
     langSwitcher.addEventListener('click', () => {
-      // Блокируем повторное нажатие во время анимации
       if (gsap.isTweening(langSwitcher)) return;
 
       const newLang = currentLang === 'ru' ? 'en' : 'ru';
-      const oldLangText = currentLang.toUpperCase();
       const newLangText = newLang.toUpperCase();
-
       const chars = langSwitcher.querySelectorAll('span');
       
       const tl = gsap.timeline();
@@ -1139,7 +1208,6 @@ document.addEventListener('DOMContentLoaded', () => {
         stagger: 0.1,
         ease: 'power2.in',
         onComplete: () => {
-          // Меняем язык и текст в свитчере в середине анимации
           currentLang = newLang;
           changeLanguage(currentLang);
           langSwitcher.innerHTML = `<span>${newLangText[0]}</span><span>${newLangText[1]}</span>`;
@@ -1196,20 +1264,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = e.target;
     const button = form.querySelector('button');
     const statusEl = form.querySelector('.form-status');
-    const originalText = button.textContent;
+    const originalButtonTextSpan = button.querySelector('span');
+    const originalText = originalButtonTextSpan.textContent;
+
     statusEl.classList.remove('success', 'error');
     gsap.to(statusEl, { opacity: 0, y: 10, duration: 0.3 });
-    button.textContent = 'TRANSMITTING...';
+    button.querySelector('span').textContent = currentLang === 'ru' ? 'ПЕРЕДАЧА...' : 'TRANSMITTING...';
     button.disabled = true;
     button.classList.add('submitting');
     setTimeout(() => {
         button.classList.remove('submitting');
-        button.textContent = 'TRANSMISSION COMPLETE';
-        statusEl.textContent = '[ SUCCESS: MESSAGE RECEIVED ]';
+        button.querySelector('span').textContent = currentLang === 'ru' ? 'ПЕРЕДАЧА ЗАВЕРШЕНА' : 'TRANSMISSION COMPLETE';
+        statusEl.textContent = currentLang === 'ru' ? '[ УСПЕХ: СООБЩЕНИЕ ПОЛУЧЕНО ]' : '[ SUCCESS: MESSAGE RECEIVED ]';
         statusEl.classList.add('success');
         gsap.to(statusEl, { opacity: 1, y: 0, duration: 0.5 });
         setTimeout(() => {
-            button.textContent = originalText;
+            button.querySelector('span').textContent = originalText;
             button.disabled = false;
             form.reset();
             gsap.to(statusEl, { opacity: 0, y: 10, duration: 0.5, onComplete: () => {
@@ -1237,7 +1307,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cursor) {
         gsap.set(cursor, { left: mouse.x, top: mouse.y });
       }
-      requestAnimationFrame(animate);
+      requestAnimationFrame(animate); 
     }
     animate();
   }
